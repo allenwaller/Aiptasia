@@ -1,0 +1,152 @@
+---
+title: "Aiptasia_Heat_pHi_Temperatures"
+author: "Katelyn G. Jones"
+date: "2023-05-25"
+output: 
+  html_document:
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    theme: cerulean
+---
+
+This document contains the code pertaining to recorded temperatures during the experiment for both cohorts of Exaiptasia diaphana. The statistics reported in the finalized paper are completed here, along with any plots pertaining to temperature. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load libraries
+```{r, message = FALSE}
+library(tidyverse)
+library(car)
+library(emmeans)
+library(DHARMa)
+library(MuMIn)
+library(lubridate)
+library(knitr)
+library(ezknitr)
+library(Rmisc)
+library(lme4)
+library(lmerTest)
+library(readr)
+library(ggpubr)
+```
+
+# eDHW data
+```{r}
+#Import data set
+edhw = read.csv("~/Library/CloudStorage/Box-Box/grp-sas-bio-barottlab/Data/2022 CC7 heat stress experiment/Code Cleaned for Publication/Temperature Data/edhw.csv")
+
+#This data set contains the cumulative eDHW value for each day of the experiment for aposymbiotic and symbiotic replicates for each temperature treatment
+#The final days of the experiment contain the total eDHW (reported in figure _) the animals experienced 
+```
+
+# Experimental temperature data
+```{r}
+#Import data set
+temperature = read.csv("~/Library/CloudStorage/Box-Box/grp-sas-bio-barottlab/Data/2022 CC7 heat stress experiment/Code Cleaned for Publication/Temperature Data/temperature.csv")
+
+#This data set contains the hourly mean temperatures of each individual replicate across the entire experiment. 
+```
+
+## Statistics
+```{r}
+#Import summarized data set of the 24-hour mean temperatures
+dailyAverage = read.csv("~/Library/CloudStorage/Box-Box/grp-sas-bio-barottlab/Data/2022 CC7 heat stress experiment/Code Cleaned for Publication/Temperature Data/dailyAverage.csv")
+
+#Subset for post-ramp temperatures
+#HD:
+HDpostramp <- dailyAverage %>% subset(Cohort == "HD" & Day > 5)
+#LD:
+LDpostramp <- dailyAverage %>% subset(Cohort == "LD" & Day > 7)
+
+#Did treatments differ from one another within cohorts?
+#make Target.temp a factor:
+HDpostramp$Target.temp <- as.factor(HDpostramp$Target.temp)
+LDpostramp$Target.temp <- as.factor(LDpostramp$Target.temp)
+
+#HD model:
+HDtemps.lm <- lm(Zub_temp~Target.temp, data = HDpostramp)
+anova(HDtemps.lm)
+#Daily averages differed in HD cohort: F(3,42)=528.68, p<0.001)
+#Pairwise posthoc:
+HDtemps.lm.tukey <- emmeans(HDtemps.lm, list(pairwise ~ Target.temp), adjust = "tukey")
+HDtemps.lm.tukey
+#All differed from one another (p<0.001)
+
+#LD model:
+LDtemps.lm <- lm(Zub_temp~Target.temp, data = LDpostramp)
+anova(LDtemps.lm)
+#Daily averages differed in LD cohort: F(3,34)=2682.3, P<0.001
+#Pairwise posthoc:
+LDtemps.lm.tukey <- emmeans(LDtemps.lm, list(pairwise ~ Target.temp), adjust = "tukey")
+LDtemps.lm.tukey
+#All differed from one another (p<0.001)
+
+#Did treatment means differ by cohort?
+#merge:
+postramptemps <- rbind(HDpostramp, LDpostramp)
+#test:
+cohort.temp.lm <- lm(Zub_temp~Target.temp*Cohort, data = postramptemps)
+anova(cohort.temp.lm)
+#interaction Target.temp:Cohort - F(3,76)=3.63, P=0.017
+cohort.temp.lm.tukey <- emmeans(cohort.temp.lm, list(pairwise ~ Target.temp*Cohort), simple = "Cohort", adjust = "tukey")
+cohort.temp.lm.tukey
+#Cohorts differed in highest-temp treatment only (P=0.017)
+
+```
+
+## Plots
+```{r}
+#Subset each cohort for separate graphs, first
+LDGraph = subset(dailyAverage, month == "Feb")
+LDGraph$Target.temp = as.factor(LDGraph$Target.temp) #Converting each temperature treatment to a factor for graphing
+
+HDGraph = subset(dailyAverage, month == "May")
+HDGraph$Target.temp = as.factor(HDGraph$Target.temp) #Converting each temperature treatment to a factor for graphing
+
+tempPlotLD <- ggplot(LDGraph, aes(x = Day, y = Zub_temp, color = Target.temp, fill=Target.temp)) +
+  geom_ribbon(aes(ymin = Zub_temp-se, ymax = Zub_temp+se), alpha = 0.4)+
+  geom_line(size = 1) +
+  scale_color_manual("Target Temperature", values = c("25" = "#0571b0", "27" = "#92c5de", "29" = "#f4a582", "31" = "#ca0020"), labels = c(c(expression(25~degree~C), expression(27~degree~C), expression(29~degree~C), expression(31~degree~C)))) +
+  scale_fill_manual("Target Temperature", values = c("25" = "#0571b0", "27" = "#92c5de", "29" = "#f4a582", "31" = "#ca0020"), labels = c(expression(25~degree~C), expression(27~degree~C), expression(29~degree~C), expression(31~degree~C))) +
+  scale_y_continuous(expression(Temperature~(degree~C)), breaks = c(23, 25, 27, 29, 31), limits = c(23, 31.5)) + 
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20)) + 
+  labs(title ="LD") + 
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(size = 12), 
+    axis.title.x = element_text(size = 14),
+    legend.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    axis.title.y=element_blank(),
+    axis.text.y=element_blank(),
+    plot.title = element_text(colour="Black", size=16, hjust = 0.5)
+  ) 
+tempPlotLD
+
+tempPlotHD <- ggplot(HDGraph, aes(x = Day, y = Zub_temp, color = Target.temp, fill=Target.temp)) +
+  geom_ribbon(aes(ymin = Zub_temp-se, ymax = Zub_temp+se), alpha = 0.4)+
+  geom_line(size = 1) +
+  scale_color_manual("Target Temperature", values = c("25" = "#0571b0", "27" = "#92c5de", "29" = "#f4a582", "31" = "#ca0020"), labels = c(c(expression(25~degree~C), expression(27~degree~C), expression(29~degree~C), expression(31~degree~C)))) +
+  scale_fill_manual("Target Temperature", values = c("25" = "#0571b0", "27" = "#92c5de", "29" = "#f4a582", "31" = "#ca0020"), labels = c(expression(25~degree~C), expression(27~degree~C), expression(29~degree~C), expression(31~degree~C))) +
+  scale_y_continuous(expression(Temperature~(degree~C)), breaks = c(23, 25, 27, 29, 31), limits = c(23, 31.5)) + 
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20)) + 
+  labs(title ="HD") + 
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(size = 12), 
+    axis.title.x = element_text(size = 14),
+    axis.text.y = element_text(size = 12),
+    axis.title.y = element_text(size = 14,),
+    legend.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    plot.title = element_text(colour="Black", size=16, hjust = 0.5)
+  ) 
+tempPlotHD
+
+#One plot of both cohorts 
+ggarrange(tempPlotHD, tempPlotLD, ncol = 2, nrow = 1, legend = F)
+```
+
