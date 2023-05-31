@@ -1,1 +1,5 @@
 # Temperature data and code for 2022 Aiptasia experiments
+# Raw hourly temperatures are in 'temperature.csv'
+# Daily average temperatures for each container (24-hr means) are in 'dailyAverage.csv'
+# Experimental degree heating weeks (eDHW; °C/wk) are in 'edhw.csv'
+# Code to process daily average temperatures into plots and statistics for manuscript are in 'Aiptasia_Heat_pHi_Temperatures.Rmd'
