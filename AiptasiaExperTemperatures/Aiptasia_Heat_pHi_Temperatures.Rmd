@@ -1,6 +1,6 @@
 ---
 title: "Aiptasia_Heat_pHi_Temperatures"
-author: "Katelyn G. Jones"
+authors: "Katelyn G. Jones & Luella Allen-Waller"
 date: "2023-05-25"
 output: 
   html_document:
@@ -36,16 +36,16 @@ library(ggpubr)
 # eDHW data
 ```{r}
 #Import data set
-edhw = read.csv("~/Library/CloudStorage/Box-Box/grp-sas-bio-barottlab/Data/2022 CC7 heat stress experiment/Code Cleaned for Publication/Temperature Data/edhw.csv")
+edhw = read.csv("edhw.csv")
 
-#This data set contains the cumulative eDHW value for each day of the experiment for aposymbiotic and symbiotic replicates for each temperature treatment
-#The final days of the experiment contain the total eDHW (reported in figure _) the animals experienced 
+#This data set contains the cumulative eDHW value for each day of the experiment for aposymbiotic and symbiotic containers for each temperature treatment
+#The final days of the experiment contain the total eDHW (reported in figure 2) the animals experienced 
 ```
 
 # Experimental temperature data
 ```{r}
 #Import data set
-temperature = read.csv("~/Library/CloudStorage/Box-Box/grp-sas-bio-barottlab/Data/2022 CC7 heat stress experiment/Code Cleaned for Publication/Temperature Data/temperature.csv")
+temperature = read.csv("temperature.csv")
 
 #This data set contains the hourly mean temperatures of each individual replicate across the entire experiment. 
 ```
@@ -53,7 +53,7 @@ temperature = read.csv("~/Library/CloudStorage/Box-Box/grp-sas-bio-barottlab/Dat
 ## Statistics
 ```{r}
 #Import summarized data set of the 24-hour mean temperatures
-dailyAverage = read.csv("~/Library/CloudStorage/Box-Box/grp-sas-bio-barottlab/Data/2022 CC7 heat stress experiment/Code Cleaned for Publication/Temperature Data/dailyAverage.csv")
+dailyAverage = read.csv("dailyAverage.csv")
 
 #Subset for post-ramp temperatures
 #HD:
