@@ -1,6 +1,7 @@
 # Aiptasia.Heat.pHi
-Luella Allen-Waller, Katelyn G. Jones, Marcelina P. Martynek, Kristen T. Brown, Katie L. Barott
-Department of Biology, University of Pennsylvania, Philadelphia, PA
+from # Heat stress disrupts acid-base homeostasis independent of symbiosis in the model cnidarian Exaiptasia diaphana
+# Luella Allen-Waller, Katelyn G. Jones, Marcelina P. Martynek, Kristen T. Brown, Katie L. Barott
+# Department of Biology, University of Pennsylvania, Philadelphia, PA
 
 This repository contains data and code pertaining to manuscript "Heat stress disrupts acid-base homeostasis independent of symbiosis in the model cnidarian Exaiptasia diaphana." In this study, we used symbiotic and aposymbiotic individuals of the model symbiotic sea anemone E. diaphana (Aiptasia) disentangle contributions of symbiont dysfunction from direct effects of heat stress on cnidarian host physiology. We found that heat disrupts cnidarian host acid-base homeostasis regardless of symbiont presence or function across two anemone cohorts, highlighting bleaching-independent effects of climate change.
 
