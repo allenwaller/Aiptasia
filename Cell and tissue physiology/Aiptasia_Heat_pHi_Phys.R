@@ -32,6 +32,7 @@ library(vegan)
 data <- read.csv("AiptasiaCombinedPhys.csv")
 ambphys <- read.csv('AiptasiaCombinedPhys.csv') %>% subset(target.temp.fac == "25")
 colors <- read.csv('AiptasiaCombinedPhys.csv') %>% subset(date == "20220202" | date == "20220517")
+sizes <- read.csv('AiptasiaSizes.csv')
 
 # Adjust factor names
 data$target.temp.fac <- as.factor(data$target.temp.fac)
@@ -124,9 +125,59 @@ Prot <- ggplot(sym, aes(x = cohort, y = prot.ug.anemone/1000, group = cohort)) +
   scale_x_discrete(limits = c("HD", "LD"))
 Prot
 
-### Fig. 1: Cohort comparisons
-Fig1Phys <- ggarrange(InitialRedScore,Symbs,Prot, nrow = 1, ncol = 3, widths = c(0.95,1,1.05), common.legend = T)
+# test whether apo protein differed between cohorts
+apophys <- phys %>% subset(symb.status == "apo")
+apoprot.lm <- lm(prot.ug.anemone~Cohort, data = apophys)
+apoprot.lme <- lmer(prot.ug.anemone~Cohort + (1|zub), data = apophys)
+AICc(apoprot.lm, apoprot.lme)
+# lme is better
+plot(apoprot.lme)
+anova(apoprot.lme)
+# ***cohort (F=33.098, P<0.001)
+# Visualize:
+ApoProt <- ggplot(apophys, aes(x = Cohort, y = prot.ug.anemone /1000, group = Cohort)) +
+  geom_boxplot(outlier.shape = NA,aes(fill = Cohort)) +
+  geom_point(size = 2.5, alpha = 0.6, position = position_jitter(width = 0.05),
+             aes(shape = Cohort)) +
+  scale_shape_manual("Cohort", values = c("HD" = 16, "LD" = 1)) +
+  scale_fill_manual("Cohort", values = c("HD" = "grey", "LD" = "white")) +
+  labs(y = expression(atop("Protein", paste((mg~anemone^-1)))), x = "") +
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 12, color = "black"),
+        panel.background = element_blank(), panel.border = element_rect(fill = NA),
+        legend.position = "right", legend.key = element_rect(fill = NA)) +
+  coord_cartesian(ylim =c(0,0.4)) +
+  scale_y_continuous(breaks = c(0.0,0.2,0.4))
+ApoProt
+
+###### Size
+symsizes <- size %>% subset(symb.status == "sym")
+# Test whether oral disk diameters of sym anemones differed between cohorts
+size.lm <- lm(diameter.cm~cohort, data = symsizes)
+size.lme <- lmer(diameter.cm~cohort + (1|zub), data = symsizes)
+AICc(size.lm, size.lme)
+# lm is better
+plot(size.lm)
+# nice
+anova(size.lm)
+# ***cohort (F=34.568, df = 1, p<0.0001)
+# plot oral disk size by cohort
+Sizes <- ggplot(symsizes, aes(x = cohort, y = diameter.cm, group = cohort)) +
+  geom_boxplot(outlier.shape = NA, aes(fill = cohort)) +
+  geom_point(size = 2.5, alpha = 0.6, position = position_jitter(width = 0.05),
+             aes(shape = cohort)) +
+  scale_shape_manual("Cohort", values = c("HD" = 16, "LD" = 1)) +
+  scale_fill_manual("Cohort", values = c("HD" = "grey", "LD" = "white")) +
+  labs(y = expression(paste("Oral disk diameter (cm)")), x = "") +
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 12, color = "black"),
+        panel.background = element_blank(), panel.border = element_rect(fill = NA),
+        legend.position = "right", legend.key = element_rect(fill = NA)) +
+  coord_cartesian(ylim = c(0.1, 0.7))
+Sizes
+
+### Fig 1: Cohort comparisons
+Fig1Phys <- ggarrange(InitialRedScore,Symbs,Sizes,Prot, nrow = 1, ncol = 4, widths = c(0.95,1,1,1.05), common.legend = T)
 Fig1Phys
+
 
 ### Verifying that 13C pulse chase worked
 # Expectation: enrichment in symbiotic anemones from both cohorts relative to apo controls
@@ -809,7 +860,7 @@ colnames(hidens.drop.multi)[1:12] <- c("Cohort", "Zub", "Temp", "SymbStatus","Sy
 # Scale and center data
 high.scaled <- scale(hidens.drop.multi[5:12], center = T, scale = T) 
 # Identify factors 
-fac.<- <- hidens.drop.multi[1:4]
+fac <- hidens.drop.multi[1:4]
 # Make PCAs
 # high:
 pca.hi <- prcomp(high.scaled, center=FALSE, scale=FALSE)
